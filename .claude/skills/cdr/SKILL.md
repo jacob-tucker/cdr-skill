@@ -48,16 +48,31 @@ Inline payloads are capped at ~1024 bytes on Aeneid. Anything larger goes throug
 
 Every vault has a `writeConditionAddr` + `readConditionAddr` (contract addresses) and matching ABI-encoded `writeConditionData` / `readConditionData`. The encoding is condition-specific.
 
-Aeneid contracts:
-- `OwnerWriteCondition` / `OwnerReadCondition`: `0x4C9bFC96d7092b590D497A191826C3dA2277c34B` — data is just `address`.
-- `LicenseReadCondition`: `0xC0640AD4CF2CaA9914C8e5C44234359a9102f7a3` — data is `(address licenseToken, address ipId)`.
+Aeneid has only **two** deployed condition contracts. There is no `OwnerReadCondition` and no `OpenCondition`:
+
+- `OwnerWriteCondition`: `0x4C9bFC96d7092b590D497A191826C3dA2277c34B` — **write only**. `conditionData = abi.encode(address owner)`. Reverts if used as a read condition.
+- `LicenseReadCondition`: `0xC0640AD4CF2CaA9914C8e5C44234359a9102f7a3` — **read only**. `conditionData = abi.encode(address licenseToken, address ipId)`. Reverts if used as a write condition.
 - `LicenseToken`: `0xFe3838BFb30B34170F00030B52eA4893d8aAC6bC`.
 
-```ts
-// Owner-only
-const data = encodeAbiParameters([{ type: "address" }], [owner]);
+**EOA-as-condition (the trick).** The CDR precompile accepts an EOA in `writeConditionAddr` / `readConditionAddr` and gates that operation to that exact address — no condition contract needed, no `conditionData` (pass `"0x"`). This is the canonical way to do owner-only reads on Aeneid since no `OwnerReadCondition` is deployed.
 
-// License-gated read
+The catch: the SDK's `Uploader.allocate()` runs a preflight check that staticcalls `checkWriteCondition`/`checkReadCondition` on the address. EOAs have no code, so the check throws `InvalidConditionContractError`. Pass `skipConditionValidation: true` to `allocate()` to bypass it. **`uploadCDR()` and `uploadFile()` do not expose this flag** — when using an EOA condition you must drop to the lower-level path: `uploader.allocate({ ..., skipConditionValidation: true })` → `uploader.encryptDataKey()` → `uploader.write()`. For files, also call `encryptFile()` (re-exported from the SDK) and `storage.upload()` yourself before allocating.
+
+```ts
+// Owner-only round trip via EOA read condition
+const { uuid } = await client.uploader.allocate({
+  updatable: false,
+  writeConditionAddr: OWNER_WRITE_CONDITION,
+  writeConditionData: encodeAbiParameters([{ type: "address" }], [owner]),
+  readConditionAddr: owner,        // EOA — gates reads to this exact wallet
+  readConditionData: "0x",
+  skipConditionValidation: true,   // EOA has no code; skip preflight
+});
+const label = uuidToLabel(uuid);
+const ciphertext = await client.uploader.encryptDataKey({ dataKey, globalPubKey, label });
+await client.uploader.write({ uuid, accessAuxData: "0x", encryptedData: toHex(ciphertext.raw) });
+
+// License-gated read (uses the deployed LicenseReadCondition contract)
 const readData = encodeAbiParameters(
   [{ type: "address" }, { type: "address" }],
   [LICENSE_TOKEN, ipId],

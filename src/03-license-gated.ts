@@ -17,7 +17,7 @@ import { StoryClient } from "@story-protocol/core-sdk";
 import { http } from "viem";
 import { client, account, walletClient, publicClient, ready } from "./client.js";
 
-// Aeneid condition + token addresses from the docs.
+// Aeneid condition + token addresses.
 const OWNER_WRITE_CONDITION = "0x4C9bFC96d7092b590D497A191826C3dA2277c34B";
 const LICENSE_READ_CONDITION = "0xC0640AD4CF2CaA9914C8e5C44234359a9102f7a3";
 const LICENSE_TOKEN = "0xFe3838BFb30B34170F00030B52eA4893d8aAC6bC";
@@ -36,8 +36,9 @@ async function main() {
   const owner = walletClient.account.address;
 
   // ── Step 1. Upload the gated secret. ─────────────────────────────────────
-  // Write condition: owner-only. Read condition: holders of a license token
-  // bound to (LICENSE_TOKEN contract, ipId).
+  // Write condition: OwnerWriteCondition contract bound to our address.
+  // Read condition: LicenseReadCondition bound to (LICENSE_TOKEN, ipId) — any
+  // wallet holding a valid license token for `ipId` can read.
   const writeCondData = encodeAbiParameters([{ type: "address" }], [owner]);
   const readCondData = encodeAbiParameters(
     [{ type: "address" }, { type: "address" }],
