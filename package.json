@@ -1,0 +1,27 @@
+{
+  "name": "cdr-tutorial",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Minimal scripts that demonstrate Story Confidential Data Rails (CDR) — encrypt/decrypt text, files, and license-gated content on Aeneid testnet.",
+  "type": "module",
+  "scripts": {
+    "text": "tsx src/01-encrypt-text.ts",
+    "file": "tsx src/02-encrypt-file.ts",
+    "license": "tsx src/03-license-gated.ts"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "dependencies": {
+    "@helia/unixfs": "^3.0.0",
+    "@piplabs/cdr-sdk": "workspace:*",
+    "@story-protocol/core-sdk": "^1.3.0",
+    "helia": "^4.0.0",
+    "multiformats": "^13.0.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

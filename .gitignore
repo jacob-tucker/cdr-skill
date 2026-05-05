@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.decrypted.*
+example.txt
+dist/
+.DS_Store
+
+# Upstream SDK — cloned in by the user per README.
+cdr-sdk/
