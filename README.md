@@ -47,7 +47,5 @@ This repo also ships a [`cdr` agent skill](skills/cdr/SKILL.md) that teaches Cla
 Install it into your project:
 
 ```bash
-npx skills add <github-owner>/cdr-skill --skill cdr
+npx skills add jacob-tucker/cdr-skill --skill cdr
 ```
-
-Replace `<github-owner>/cdr-skill` with the repo path once published. The skill drops into `.claude/skills/cdr/SKILL.md` (or the equivalent for your agent).

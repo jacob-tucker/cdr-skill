@@ -7,3 +7,7 @@ dist/
 
 # Upstream SDK — cloned in by the user per README.
 cdr-sdk/
+
+.agents
+.claude
+skills-lock.json
