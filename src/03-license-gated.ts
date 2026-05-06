@@ -13,21 +13,14 @@
 // Required env: IP_ID, LICENSE_TERMS_ID (and a funded wallet).
 
 import { encodeAbiParameters, parseEther } from "viem";
-import { aeneid, StoryClient } from "@story-protocol/core-sdk";
+import { StoryClient } from "@story-protocol/core-sdk";
 import { http } from "viem";
-import {
-  client,
-  account,
-  walletClient,
-  publicClient,
-  ready,
-} from "./client.js";
+import { client, account, walletClient, ready } from "./client.js";
 
 // Aeneid condition + token addresses.
 const OWNER_WRITE_CONDITION = "0x4C9bFC96d7092b590D497A191826C3dA2277c34B";
 const LICENSE_READ_CONDITION = "0xC0640AD4CF2CaA9914C8e5C44234359a9102f7a3";
 const LICENSE_TOKEN = "0xFe3838BFb30B34170F00030B52eA4893d8aAC6bC";
-const WIP_TOKEN = "0x1514000000000000000000000000000000000000";
 const ROYALTY_MODULE = "0xD2f60c40fEbccf6311f8B47c4f2Ec6b040400086";
 
 async function main() {
