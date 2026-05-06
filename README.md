@@ -39,3 +39,15 @@ pnpm license   # 03-license-gated.ts
 ```
 
 Each script logs every transaction hash and the decrypted output.
+
+## Agent skill
+
+This repo also ships a [`cdr` agent skill](skills/cdr/SKILL.md) that teaches Claude Code (and any agent compatible with the [open agent skills](https://github.com/vercel-labs/skills) format) how to develop against `@piplabs/cdr-sdk`.
+
+Install it into your project:
+
+```bash
+npx skills add <github-owner>/cdr-skill --skill cdr
+```
+
+Replace `<github-owner>/cdr-skill` with the repo path once published. The skill drops into `.claude/skills/cdr/SKILL.md` (or the equivalent for your agent).
