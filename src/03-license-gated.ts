@@ -13,9 +13,15 @@
 // Required env: IP_ID, LICENSE_TERMS_ID (and a funded wallet).
 
 import { encodeAbiParameters, parseEther } from "viem";
-import { StoryClient } from "@story-protocol/core-sdk";
+import { aeneid, StoryClient } from "@story-protocol/core-sdk";
 import { http } from "viem";
-import { client, account, walletClient, publicClient, ready } from "./client.js";
+import {
+  client,
+  account,
+  walletClient,
+  publicClient,
+  ready,
+} from "./client.js";
 
 // Aeneid condition + token addresses.
 const OWNER_WRITE_CONDITION = "0x4C9bFC96d7092b590D497A191826C3dA2277c34B";
@@ -46,7 +52,9 @@ async function main() {
   );
 
   const globalPubKey = await client.observer.getGlobalPubKey();
-  const dataKey = new TextEncoder().encode("licensed IP payload — only paying readers see this");
+  const dataKey = new TextEncoder().encode(
+    "licensed IP payload — only paying readers see this",
+  );
 
   console.log("Uploading license-gated vault...");
   const { uuid } = await client.uploader.uploadCDR({
@@ -67,43 +75,28 @@ async function main() {
 
   // 2a. Wrap 1 IP → 1 WIP so we can pay the minting fee in WIP.
   console.log("Wrapping 1 IP to WIP...");
-  const wrapTx = await walletClient.sendTransaction({
-    to: WIP_TOKEN,
-    data: "0xd0e30db0", // deposit()
-    value: parseEther("1"),
-  });
-  await publicClient.waitForTransactionReceipt({ hash: wrapTx });
-
-  // 2b. Approve the RoyaltyModule to spend WIP for the mint.
-  console.log("Approving RoyaltyModule to spend WIP...");
-  const approveTx = await walletClient.writeContract({
-    address: WIP_TOKEN,
-    abi: [
-      {
-        type: "function",
-        name: "approve",
-        inputs: [{ type: "address" }, { type: "uint256" }],
-        outputs: [{ type: "bool" }],
-        stateMutability: "nonpayable",
-      },
-    ] as const,
-    functionName: "approve",
-    args: [ROYALTY_MODULE, parseEther("1")],
-  });
-  await publicClient.waitForTransactionReceipt({ hash: approveTx });
-
-  // 2c. Mint the license token via the Story core SDK.
-  console.log("Minting license token...");
   const storyClient = StoryClient.newClient({
     transport: http(process.env.RPC_URL ?? "https://aeneid.storyrpc.io"),
     account,
+    chainId: "aeneid",
   });
+  await storyClient.wipClient.deposit({
+    amount: parseEther("1"),
+  });
+
+  // 2b. Approve the RoyaltyModule to spend WIP for the mint.
+  console.log("Approving RoyaltyModule to spend WIP...");
+  await storyClient.wipClient.approve({
+    spender: ROYALTY_MODULE,
+    amount: parseEther("1"),
+  });
+
+  // 2c. Mint the license token via the Story core SDK.
+  console.log("Minting license token...");
   const mintResult = await storyClient.license.mintLicenseTokens({
     licensorIpId: ipId,
-    licenseTermsId,
+    licenseTermsId: BigInt(licenseTermsId),
     amount: 1,
-    maxMintingFee: "100000000000000000",
-    maxRevenueShare: 100,
   });
   const licenseTokenId = mintResult.licenseTokenIds![0];
   console.log(`License token id: ${licenseTokenId}`);

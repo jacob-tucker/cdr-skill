@@ -29,7 +29,10 @@ async function main() {
   console.log(`Owner wallet: ${owner}`);
 
   // Step 2. Encode the write condition payload — just the owner address.
-  const writeConditionData = encodeAbiParameters([{ type: "address" }], [owner]);
+  const writeConditionData = encodeAbiParameters(
+    [{ type: "address" }],
+    [owner],
+  );
 
   // Step 3. Fetch the DKG public key. Encryption is done locally with this key.
   const globalPubKey = await client.observer.getGlobalPubKey();
@@ -55,7 +58,11 @@ async function main() {
   const secret = "the launch code is hunter2";
   const dataKey = new TextEncoder().encode(secret);
   const label = uuidToLabel(uuid);
-  const ciphertext = await client.uploader.encryptDataKey({ dataKey, globalPubKey, label });
+  const ciphertext = await client.uploader.encryptDataKey({
+    dataKey,
+    globalPubKey,
+    label,
+  });
 
   // Step 6. Write the ciphertext on-chain.
   console.log("Writing ciphertext...");
